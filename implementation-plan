@@ -1,11 +1,61 @@
-- receive two json payloads via endpoint (laravel)
+- set up boilerplate code for Laravel and Vue
+
+- receive two JSON payloads via endpoint (Laravel)
+    - define API routes in routes/api.php for receiving payloads (e.g., POST /api/payloads/receive).
+    - create a controller (e.g., PayloadController) with a method receivePayload to accept JSON payloads.
+    - validate the incoming JSON payloads and ensure proper headers are sent (Content-Type: application/json).
+
+- store payloads in cache
+    - if no payload is cached, store the first payload.
+    - otherwise, store the second payload.
+    - use Laravel’s caching functionality (e.g., Cache::forever()) to persist the payloads.
+
 - compare the payloads and identify diff
-- display diff in the ui (vuejs)
+    - in PayloadController, create a method comparePayloads that:
+        - retrieves both payloads from the cache.
+        - calls a recursive helper function (e.g., arrayDiffAssocRecursive) to compare the two arrays and produce a structured diff.
+        - modify the helper function to iterate over the union of keys, ensuring that missing blocks (extra data in one payload) are detected and included in the diff.
+
+- display diff in the form of a table (Vue.js)
+    - create a Vue component that:
+    - calls the /api/payloads/compare endpoint to retrieve the diff.
+    - uses a computed property and a helper method to flatten nested differences.
+    - renders a table where each row shows the field path, old value, and new value.
+    - implement formatting for nested objects or arrays (e.g., display as JSON string) to improve readability.
+
 - provide a button to trigger payloads from the frontend
+    - sdd a “Send Payload 1” button to trigger the first payload submission.
+    - add a “Compare Payloads” button to fetch and display the diff.
+    - trigger the second payload automatically after a countdown timer.
+    - wire up each button to the appropriate methods that make API calls using a service layer (e.g., via Axios).
+
 - handle errors
+    - return proper HTTP error responses (with error messages) when validations fail or if both payloads have already been received.
+    - display error messages in the UI when an API request fails.
+    - validate responses and use try/catch blocks to handle exceptions gracefully.
+
+- allow users to reset the cache
+    - create a Laravel endpoint (e.g., POST /api/payloads/reset) that clears the cached payloads.
+    - in the Vue component, add a “Reset Payloads” button that calls this endpoint and resets the UI state.
+    - ensure the backend returns a confirmation message upon successful cache reset.
+
+
 - tests
+- write unit tests for PayloadController methods to verify that payloads are stored, compared, and reset correctly.
+
+- manual Testing:
+    - use curl commands to simulate API requests.
+    - use php artisan tinker to get cached payload for testing
+        - run php artisan tinker and use commands like Cache::get('payload_1') or Cache::get('payload_2') to inspect the cached payloads.
+        - verify that the cache entries are correctly stored and updated during your testing process.
+        - changed cache driver to file from database
 
 
+curl commands for testing
 
-- php artisan tinker to get cached payload
-- changed cache driver to file
+- to send the first payload:
+    `curl -X POST http://localhost:8000/api/payloads/receive -H "Content-Type: application/json" -d @payload1.json`
+- to send the second payload:
+    `curl -X POST http://localhost:8000/api/payloads/receive -H "Content-Type: application/json" -d @payload2.json`
+- to compare the payloads:
+    `curl -X GET http://localhost:8000/api/payloads/compare`

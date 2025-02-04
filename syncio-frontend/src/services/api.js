@@ -19,3 +19,8 @@ export const comparePayloads = async () => {
         throw error.response.data;
     }
 };
+
+export const resetPayloads = async () => {
+    return await axios.delete(`${API_URL}/payloads/reset`);
+};
+

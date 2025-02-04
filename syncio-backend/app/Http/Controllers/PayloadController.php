@@ -41,16 +41,43 @@ class PayloadController extends Controller
     private function arrayDiffAssocRecursive($array1, $array2)
     {
         $difference = [];
-        foreach ($array1 as $key => $value) {
-            if (is_array($value) && isset($array2[$key]) && is_array($array2[$key])) {
-                $new_diff = $this->arrayDiffAssocRecursive($value, $array2[$key]);
-                if (!empty($new_diff)) {
-                    $difference[$key] = $new_diff;
+
+        // Get the union of keys from both arrays.
+        $allKeys = array_unique(array_merge(array_keys($array1), array_keys($array2)));
+
+        foreach ($allKeys as $key) {
+            $keyExistsInArray1 = array_key_exists($key, $array1);
+            $keyExistsInArray2 = array_key_exists($key, $array2);
+
+            if ($keyExistsInArray1 && $keyExistsInArray2) {
+                $value1 = $array1[$key];
+                $value2 = $array2[$key];
+                if (is_array($value1) && is_array($value2)) {
+                    $new_diff = $this->arrayDiffAssocRecursive($value1, $value2);
+                    if (!empty($new_diff)) {
+                        $difference[$key] = $new_diff;
+                    }
+                } elseif ($value1 !== $value2) {
+                    $difference[$key] = ['old' => $value1, 'new' => $value2];
                 }
-            } elseif (!isset($array2[$key]) || $array2[$key] !== $value) {
-                $difference[$key] = ['old' => $value, 'new' => $array2[$key] ?? null];
+            } elseif ($keyExistsInArray1 && !$keyExistsInArray2) {
+                // Key exists in payload1 but missing in payload2.
+                $difference[$key] = ['old' => $array1[$key], 'new' => null];
+            } elseif (!$keyExistsInArray1 && $keyExistsInArray2) {
+                // Key exists in payload2 but missing in payload1.
+                $difference[$key] = ['old' => null, 'new' => $array2[$key]];
             }
         }
+
         return $difference;
+    }
+
+
+    public function resetCache()
+    {
+        Cache::forget('payload_1');
+        Cache::forget('payload_2');
+
+        return response()->json(['message' => 'Cache cleared, you can send new payloads.'], 200);
     }
 }

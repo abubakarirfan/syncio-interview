@@ -7,3 +7,5 @@ use App\Http\Controllers\PayloadController;
 
 Route::post('/payloads/receive', [PayloadController::class, 'receivePayload']);
 Route::get('/payloads/compare', [PayloadController::class, 'comparePayloads']);
+Route::delete('/payloads/reset', [PayloadController::class, 'resetCache']);
+
