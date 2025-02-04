@@ -5,3 +5,7 @@
 - handle errors
 - tests
 
+
+
+- php artisan tinker to get cached payload
+- changed cache driver to file
