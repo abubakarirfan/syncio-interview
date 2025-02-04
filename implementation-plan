@@ -1,0 +1,7 @@
+- receive two json payloads via endpoint (laravel)
+- compare the payloads and identify diff
+- display diff in the ui (vuejs)
+- provide a button to trigger payloads from the frontend
+- handle errors
+- tests
+
