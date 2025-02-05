@@ -6,9 +6,6 @@
             Send Payload 1
         </button>
 
-        <button @click="comparePayloads" :disabled="loading || !payload2Sent">
-            Compare Payloads
-        </button>
 
         <button @click="resetCache">Reset Payloads</button>
 
@@ -20,11 +17,13 @@
 
         <div v-if="loading">Loading...</div>
 
+        <div v-if="comparing">Comparison in progress...</div>
+
         <div v-if="error" class="error">
             {{ error }}
         </div>
 
-``        <div v-if="differences">
+        <div v-if="differences">
             <h3>Differences:</h3>
             <table v-if="flattenedDifferences.length > 0">
                 <thead>
@@ -63,6 +62,7 @@ export default {
     data() {
         return {
             loading: false,
+            comparing: false,
             error: null,
             status: null,
             payload1Sent: false,
@@ -79,7 +79,7 @@ export default {
         }
     },
     methods: {
-        // recursive function that flattens nested differences
+        // function that flattens nested differences
         flattenDifferences(diff, prefix = '') {
             let result = [];
             if (typeof diff === 'object' && diff !== null) {
@@ -113,7 +113,7 @@ export default {
                             return result;
                         }
                     }
-                    // If neither side is an object (or there’s nothing to flatten), treat as a leaf.
+                    // If neither side is an object, treat as a leaf
                     result.push({ field: prefix, old: oldVal, new: newVal });
                 } else if (Array.isArray(diff)) {
                     // If diff is an array, iterate with index notation.
@@ -135,15 +135,16 @@ export default {
             return result;
         },
 
-        // Helper: Determines if a value is an object (and not null).
+        // determines if a value is an object (and not null).
         isObject(val) {
             return val && typeof val === 'object';
         },
 
-        // Helper: Format an object as a JSON string (you could adjust formatting as desired).
+        // format an object as a JSON string.
         formatObject(obj) {
             return JSON.stringify(obj, null, 2);
         },
+
         async sendFirstPayload() {
             this.loading = true;
             this.error = null;
@@ -176,7 +177,9 @@ export default {
             try {
                 await sendPayload(payload2);
                 this.payload2Sent = true;
-                this.status = "Payload 2 sent automatically!";
+                this.status = "Payload 2 sent automatically! Starting comparison...";
+                // automatically trigger comparison once payload 2 is received
+                await this.comparePayloads();
             } catch (err) {
                 this.error = err.error || "Error sending Payload 2.";
             } finally {
@@ -185,15 +188,16 @@ export default {
         },
 
         async comparePayloads() {
-            this.loading = true;
+            this.comparing = true;
             this.error = null;
             try {
                 const data = await comparePayloads();
                 this.differences = data.differences || {};
+                this.status = "Comparison complete.";
             } catch (err) {
                 this.error = err.error || "Error comparing payloads.";
             } finally {
-                this.loading = false;
+                this.comparing = false;
             }
         },
 
@@ -234,7 +238,6 @@ button {
     font-weight: bold;
 }
 
-/* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
