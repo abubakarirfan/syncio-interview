@@ -42,29 +42,37 @@ class PayloadController extends Controller
     {
         $difference = [];
 
-        // Get the union of keys from both arrays.
+        // get the unique keys from both arrays
         $allKeys = array_unique(array_merge(array_keys($array1), array_keys($array2)));
 
+
+        // go through each key
         foreach ($allKeys as $key) {
             $keyExistsInArray1 = array_key_exists($key, $array1);
             $keyExistsInArray2 = array_key_exists($key, $array2);
 
+            // checks if that key exists in both arrays
             if ($keyExistsInArray1 && $keyExistsInArray2) {
                 $value1 = $array1[$key];
                 $value2 = $array2[$key];
+                // check if it is a nested object
                 if (is_array($value1) && is_array($value2)) {
+                    // compares the inner objects
+                    // used recursion cus inner objects might have nested objects too and they need to be compared in the same way
                     $new_diff = $this->arrayDiffAssocRecursive($value1, $value2);
+                    // if there's a diff, the comparison is stored under the key
                     if (!empty($new_diff)) {
                         $difference[$key] = $new_diff;
                     }
+                // if it is not an object
                 } elseif ($value1 !== $value2) {
                     $difference[$key] = ['old' => $value1, 'new' => $value2];
                 }
             } elseif ($keyExistsInArray1 && !$keyExistsInArray2) {
-                // Key exists in payload1 but missing in payload2.
+                // key exists in payload1 but missing in payload2
                 $difference[$key] = ['old' => $array1[$key], 'new' => null];
             } elseif (!$keyExistsInArray1 && $keyExistsInArray2) {
-                // Key exists in payload2 but missing in payload1.
+                // key exists in payload2 but missing in payload1
                 $difference[$key] = ['old' => null, 'new' => $array2[$key]];
             }
         }

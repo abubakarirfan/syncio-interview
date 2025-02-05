@@ -2,36 +2,29 @@
     <div class="container">
         <h2>JSON Payload Comparison</h2>
 
-        <!-- Send First Payload -->
         <button @click="sendFirstPayload" :disabled="loading || payload1Sent">
             Send Payload 1
         </button>
 
-        <!-- Compare Button -->
         <button @click="comparePayloads" :disabled="loading || !payload2Sent">
             Compare Payloads
         </button>
 
-        <!-- Reset Button -->
         <button @click="resetCache">Reset Payloads</button>
 
         <p v-if="status">{{ status }}</p>
 
-        <!-- Countdown Timer Before Sending Second Payload -->
         <div v-if="timer > 0">
             Sending second payload in {{ timer }}s...
         </div>
 
-        <!-- Loading Indicator -->
         <div v-if="loading">Loading...</div>
 
-        <!-- Error Display -->
         <div v-if="error" class="error">
             {{ error }}
         </div>
 
-        <!-- Display Differences in Table -->
-        <div v-if="differences">
+``        <div v-if="differences">
             <h3>Differences:</h3>
             <table v-if="flattenedDifferences.length > 0">
                 <thead>
@@ -45,7 +38,7 @@
                     <tr v-for="(item, index) in flattenedDifferences" :key="index">
                         <td>{{ item.field }}</td>
                         <td>
-                            <!-- If the value is an object, display it as JSON -->
+                            <!-- if the value is an object, format it -->
                             <span v-if="isObject(item.old)">{{ formatObject(item.old) }}</span>
                             <span v-else>{{ item.old }}</span>
                         </td>
@@ -79,14 +72,14 @@ export default {
         };
     },
     computed: {
-        // Compute a flattened array of difference rows for our table.
+        // compute a flattened array of difference rows for our table.
         flattenedDifferences() {
             if (!this.differences) return [];
             return this.flattenDifferences(this.differences);
         }
     },
     methods: {
-        // Updated recursive function that flattens nested differences.
+        // recursive function that flattens nested differences
         flattenDifferences(diff, prefix = '') {
             let result = [];
             if (typeof diff === 'object' && diff !== null) {
